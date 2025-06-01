@@ -46,6 +46,22 @@ if "quiz_answers" not in st.session_state:
 if "vyber_type" not in st.session_state:
     st.session_state.vyber_type = None
 
+# --- Custom Theme Colors ---
+VYBER_THEMES = {
+    "Visionary": "#6c63ff",
+    "Empath": "#ff69b4",
+    "Rebel": "#ff4500",
+    "Seeker": "#2e8b57",
+    "Strategist": "#4682b4",
+    "Healer": "#98fb98",
+    "Shadow": "#333333",
+    "Sage": "#daa520",
+    "Dreamer": "#8a2be2",
+    "Explorer": "#00ced1",
+    "Phoenix": "#ff6347",
+    "Anchor": "#1e90ff"
+}
+
 # --- CUSTOM BACKGROUND UPLOAD ---
 st.sidebar.subheader("🌅 Customize Background")
 bg_file = st.sidebar.file_uploader("Upload background image", type=["png", "jpg", "jpeg"])
@@ -130,13 +146,17 @@ with tabs[2]:
 
 # --- Tab 4: Profile ---
 def profile_card(name, score, skills, vyber_type):
-    type_desc = f"<p><strong>Vyber Type:</strong> {vyber_type}</p>" if vyber_type else "<p><em>Take the Kwyz to discover your Vyber Type!</em></p>"
+    color = VYBER_THEMES.get(vyber_type, "#cccccc")
+    type_desc = f"<p><strong>Vyber Type:</strong> <span style='color:{color};'>{vyber_type}</span></p>" if vyber_type else "<p><em>Take the Kwyz to discover your Vyber Type!</em></p>"
+    badge_html = f"<div style='padding: 0.5rem; margin-top: 1rem; border: 2px dashed {color}; border-radius: 10px; display:inline-block;'>🎖️ <strong>{vyber_type} Badge</strong></div>" if vyber_type else ""
+
     st.markdown(f"""
         <div style='border-radius: 15px; padding: 1.5rem; margin: 1rem 0; background: linear-gradient(145deg, #e6e6e6, #ffffff); box-shadow: 6px 6px 12px #cccccc, -6px -6px 12px #ffffff;'>
             <h3 style='margin-bottom: 0.5rem;'>{name}</h3>
             <p><strong>Vybe Score:</strong> {score}</p>
             <p><strong>Skills:</strong> {', '.join(skills)}</p>
             {type_desc}
+            {badge_html}
         </div>
     """, unsafe_allow_html=True)
 
