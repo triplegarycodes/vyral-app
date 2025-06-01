@@ -32,6 +32,8 @@ if "unlocked_skills" not in st.session_state:
     st.session_state.unlocked_skills = {"Root Skill"}
 if "mood_log" not in st.session_state:
     st.session_state.mood_log = []
+if "theme_choice" not in st.session_state:
+    st.session_state.theme_choice = "Focus Drift"
 
 # --- THEME FUNCTION ---
 def apply_theme(theme_name):
@@ -79,72 +81,11 @@ def apply_theme(theme_name):
     }
     st.markdown(css_dict.get(theme_name, ""), unsafe_allow_html=True)
 
-# --- SPLASH ANIMATIONS ---
-def splash_animation(effect):
-    if effect == "clout":
-        st.markdown("""
-            <style>
-            .main, .stApp {
-                animation: cloutflash 1s ease-in-out infinite alternate;
-            }
-            @keyframes cloutflash {
-                from { background-color: #ffeecc; }
-                to { background-color: #fff0f0; }
-            }
-            </style>
-        """, unsafe_allow_html=True)
-    elif effect == "unlock":
-        st.markdown("""
-            <style>
-            .main, .stApp {
-                background: radial-gradient(circle, #aaffaa, #ffffff);
-                animation: unlockshine 3s ease-in-out;
-            }
-            @keyframes unlockshine {
-                from { transform: scale(0.9); }
-                to { transform: scale(1.1); }
-            }
-            </style>
-        """, unsafe_allow_html=True)
-    elif effect == "shake":
-        st.markdown("""
-            <style>
-            .main, .stApp {
-                animation: shake 0.5s;
-            }
-            @keyframes shake {
-                0% { transform: translate(1px, 1px) rotate(0deg); }
-                25% { transform: translate(-1px, -2px) rotate(-1deg); }
-                50% { transform: translate(-3px, 0px) rotate(1deg); }
-                75% { transform: translate(1px, 2px) rotate(0deg); }
-                100% { transform: translate(1px, -1px) rotate(1deg); }
-            }
-            </style>
-        """, unsafe_allow_html=True)
+apply_theme(st.session_state.theme_choice)
 
-# --- COACHBOT MOOD RESPONSE ---
-def coachbot_mood_response(user_input):
-    mood_keywords = {
-        "anxious": "🧘 Breathe deep. We can work through it.",
-        "tired": "😴 Let’s build a rest-recovery plan.",
-        "pumped": "🔥 You’re on fire. Let’s channel it.",
-        "sad": "💙 I got you. What’s one thing you’re proud of?",
-        "focused": "🎯 Locked in. Let’s sharpen your goals."
-    }
-    for mood, response in mood_keywords.items():
-        if mood in user_input.lower():
-            st.session_state.mood_log.append((time.time(), mood))
-            return response
-    st.session_state.mood_log.append((time.time(), "neutral"))
-    return "💬 Let’s make that a SMART goal!"
-
-# --- APPLY THEME BASED ON VIBE ---
-if st.session_state.vybe_royale_score > 150:
-    apply_theme("Heat Up Mode")
-elif len(st.session_state.coachbot_data["emotions"]) + len(st.session_state.coachbot_data["topics"]) > 5:
-    apply_theme("Mood Burst")
-else:
-    apply_theme("Focus Drift")
+# --- Theme Selector ---
+st.sidebar.header("🖌️ Theme Settings")
+st.session_state.theme_choice = st.sidebar.selectbox("Choose Theme", ["Focus Drift", "Mood Burst", "Heat Up Mode"])
 
 # --- Tabs ---
 tabs = st.tabs(["Chat", "Vybe Royale", "Mood Tracker", "Profile"])
@@ -155,8 +96,7 @@ with tabs[0]:
     user_input = st.text_input("Talk to CoachBot:", placeholder="What's on your mind today?")
     if st.button("Send") and user_input:
         st.session_state.messages.append(("You", user_input))
-        response = coachbot_mood_response(user_input)
-        st.session_state.messages.append(("CoachBot", response))
+        st.session_state.messages.append(("CoachBot", "Let's make that a SMART goal!"))
 
     for speaker, msg in st.session_state.messages:
         with st.chat_message(name=speaker):
@@ -179,11 +119,9 @@ with tabs[1]:
         if "-" in outcome:
             value = int(outcome.split('-')[-1].split(' ')[0])
             st.session_state.vybe_royale_score -= value
-            splash_animation("shake")
         elif "+" in outcome:
             value = int(outcome.split('+')[-1].split(' ')[0])
             st.session_state.vybe_royale_score += value
-            splash_animation("unlock")
         st.session_state.reward_animation = outcome
         return outcome
 
@@ -217,3 +155,4 @@ def profile_card(name, score, skills):
 with tabs[3]:
     st.header("💼 Vyber Profile")
     profile_card("You", st.session_state.vybe_royale_score, st.session_state.unlocked_skills)
+
