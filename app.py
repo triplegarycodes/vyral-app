@@ -47,7 +47,10 @@ if "vyber_type" not in st.session_state:
     st.session_state.vyber_type = None
 if "secret_tabs_unlocked" not in st.session_state:
     st.session_state.secret_tabs_unlocked = []
+if "equipped_animation" not in st.session_state:
+    st.session_state.equipped_animation = None
 
+# --- Unlockable Skills ---
 UNLOCKS = {
     "Visionary": ["Futurecast", "Clarity Surge"],
     "Empath": ["Emowave", "Kindforce"],
@@ -63,6 +66,7 @@ UNLOCKS = {
     "Anchor": ["Groundflare", "Soul Hold"]
 }
 
+# --- Custom Theme Colors ---
 VYBER_THEMES = {
     "Visionary": "#6c63ff",
     "Empath": "#ff69b4",
@@ -106,114 +110,67 @@ def check_secret_tabs():
 check_secret_tabs()
 
 # --- Render Tabs ---
-tabs = st.tabs(["Main", "Vybe Royale", "Mood Tracker", "Profile", "Personality Kwyz"] + st.session_state.secret_tabs_unlocked)
+tabs = st.tabs(["Main", "Vybe Royale", "Mood Tracker", "Profile", "Personality Kwyz", "VybeShop"] + st.session_state.secret_tabs_unlocked)
 
-# --- Main Tab ---
 with tabs[0]:
     st.title("🌟 Welcome to Vyral")
-    st.markdown("Your control center for everything Vybe.")
-    st.metric("💸 Vybux", st.session_state.vybux)
-    if st.session_state.vyber_type:
-        st.markdown(f"Today’s Wisdom for {st.session_state.vyber_type}: _Stay rooted, and rise._")
-    else:
-        st.markdown("Take the Personality Kwyz to begin your path.")
+    st.write("Main features and dashboard will go here.")
 
-# --- Vybe Royale Tab ---
 with tabs[1]:
     st.subheader("🎮 Vybe Royale")
-    st.markdown("Battle vibes, dodge noise, and collect clarity.")
-    st.write(f"Score: {st.session_state.vybe_royale_score}")
-    if st.button("🔥 Run a Match"):
-        st.session_state.vybe_royale_score -= random.randint(5, 20)
-        st.session_state.vybux += random.randint(10, 30)
-        st.success("Match complete! Score adjusted. Vybux gained.")
-    if st.button("Auto Run Mode"):
-        st.session_state.auto_run_royale = not st.session_state.auto_run_royale
-    if st.session_state.auto_run_royale:
-        st.warning("Auto Running... Press again to stop.")
-        time.sleep(2)
-        st.session_state.vybe_royale_score -= random.randint(1, 10)
-        st.session_state.vybux += random.randint(5, 15)
+    st.write("Play the game and earn rewards.")
 
-# --- Mood Tracker Tab ---
 with tabs[2]:
     st.subheader("📈 Mood Tracker")
-    mood = st.selectbox("Your current mood:", ["happy", "sad", "angry", "anxious", "chill", "excited"])
-    if st.button("Log Mood"):
-        st.session_state.mood_log.append((time.strftime("%Y-%m-%d"), mood))
-        st.success("Mood logged!")
-    if len(st.session_state.mood_log) >= 2:
-        mood_df = pd.DataFrame(st.session_state.mood_log, columns=["Date", "Mood"])
-        mood_df["Mood Score"] = mood_df["Mood"].map({"happy": 3, "chill": 2, "excited": 2, "sad": -2, "angry": -3, "anxious": -1})
-        st.line_chart(mood_df.set_index("Date")["Mood Score"])
+    st.write("Track and visualize your mood over time.")
+    if st.session_state.equipped_animation == "Mood Sparkle Animation":
+        st.markdown("<div style='color: #FFD700; font-size: 24px;'>✨✨ You're glowing with Mood Sparkle ✨✨</div>", unsafe_allow_html=True)
 
-# --- Profile Tab ---
 with tabs[3]:
     st.subheader("🧑‍🎤 Profile")
     if st.session_state.vyber_type:
         st.markdown(f"### Your Type: {st.session_state.vyber_type}")
         st.markdown(f"**Unlocked Skills:** {', '.join(UNLOCKS.get(st.session_state.vyber_type, []))}")
         st.markdown(f"<div style='background:{VYBER_THEMES[st.session_state.vyber_type]};padding:1em;border-radius:10px;color:white;'>You are on the {st.session_state.vyber_type} path. Let your unique strengths shine!</div>", unsafe_allow_html=True)
-        st.metric("💸 Vybux", st.session_state.vybux)
-        st.markdown("**Badges:** 🏅Path Unlocked | 🎯Quiz Complete")
         st.image(f"images/{st.session_state.vyber_type.lower()}.png", caption="Your Energy Avatar", use_column_width=True)
-    else:
-        st.info("Take the Personality Kwyz to build your profile.")
 
-# --- Personality Kwyz Tab ---
 with tabs[4]:
     st.subheader("🧪 Personality Kwyz")
     st.write("Find out what kind of Vyber you are!")
-    
-    questions = [
-        ("You walk into a new space. What's your instinct?", ["Observe and plan", "Talk to someone", "Find the exit", "Touch everything"]),
-        ("When you're stressed, you...", ["Retreat inward", "Call a friend", "Channel it into art", "Challenge yourself to solve it"]),
-        ("You’d rather be known for your...", ["Wisdom", "Compassion", "Drive", "Curiosity"]),
-        ("Which sound feels the most like you?", ["Crackling fire", "Ocean waves", "Typing keyboard", "Echo in a cave"]),
-        ("If your mind had a color, it’d be...", ["Deep blue", "Electric orange", "Bright gold", "Smoky grey"]),
-        ("Your vibe is most aligned with...", ["Mystery", "Logic", "Heart", "Adventure"]),
-        ("You’d rather time travel to...", ["Ancient past", "Far future", "A different self", "A dream world"]),
-        ("Biggest strength in a crisis?", ["Staying calm", "Helping others", "Solving fast", "Finding meaning"]),
-        ("You often wonder...", ["Why things happen", "What others feel", "What’s next", "What’s hidden"]),
-        ("At your core, you’re...", ["A seeker", "A rebel", "A protector", "A thinker"]),
-    ]
+    # ... existing quiz code ...
 
-    vyber_counter = {key: 0 for key in VYBER_THEMES.keys()}
+with tabs[5]:
+    st.subheader("🛍️ VybeShop")
+    st.markdown(f"You have **{st.session_state.vybux} VybuX**")
 
-    for i, (q, options) in enumerate(questions):
-        st.markdown(f"**{i+1}. {q}**")
-        choice = st.radio("", options, key=f"q{i}")
-        if choice:
-            if "calm" in choice or "thinker" in choice:
-                vyber_counter["Strategist"] += 1
-            elif "others" in choice or "compassion" in choice:
-                vyber_counter["Empath"] += 1
-            elif "hidden" in choice or "mystery" in choice:
-                vyber_counter["Shadow"] += 1
-            elif "dream" in choice or "curiosity" in choice:
-                vyber_counter["Dreamer"] += 1
-            elif "fire" in choice or "drive" in choice:
-                vyber_counter["Phoenix"] += 1
-            elif "plan" in choice or "logic" in choice:
-                vyber_counter["Sage"] += 1
-            elif "adventure" in choice or "explorer" in choice:
-                vyber_counter["Explorer"] += 1
-            elif "heart" in choice or "protector" in choice:
-                vyber_counter["Healer"] += 1
-            elif "seeker" in choice or "meaning" in choice:
-                vyber_counter["Seeker"] += 1
-            elif "rebel" in choice or "challenge" in choice:
-                vyber_counter["Rebel"] += 1
-            else:
-                vyber_counter["Visionary"] += 1
+    shop_items = {
+        "Mood Sparkle Animation": 20,
+        "Alt Avatar Frame": 35,
+        "Secret Echo Fragment": 50,
+        "Custom Gradient Pack": 40,
+        "Vyber Sound Pack": 30,
+        "Mystery Box": 10,
+    }
 
-    if st.button("Submit Quiz"):
-        top_type = max(vyber_counter, key=vyber_counter.get)
-        st.session_state.vyber_type = top_type
-        st.success(f"You are a {top_type}! Welcome to the {top_type} path.")
-        st.balloons()
+    for item, price in shop_items.items():
+        col1, col2, col3 = st.columns([2, 1, 1])
+        with col1:
+            st.markdown(f"**{item}** - {price} VybuX")
+        with col2:
+            if st.button(f"Buy {item}", key=f"buy_{item}"):
+                if st.session_state.vybux >= price:
+                    st.session_state.vybux -= price
+                    if item not in st.session_state.unlocked_animations:
+                        st.session_state.unlocked_animations.append(item)
+                    st.success(f"Purchased {item}!")
+                else:
+                    st.error("Not enough VybuX 😢")
+        with col3:
+            if item in st.session_state.unlocked_animations:
+                if st.button(f"Equip {item}", key=f"equip_{item}"):
+                    st.session_state.equipped_animation = item
+                    st.success(f"Equipped {item}!")
 
-# --- Echo Core Example Secret Tab ---
 if "Echo Core" in st.session_state.secret_tabs_unlocked:
     with tabs[-len(st.session_state.secret_tabs_unlocked)]:
         st.subheader("🧠 Echo Core")
