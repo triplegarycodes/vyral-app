@@ -49,6 +49,15 @@ if "secret_tabs_unlocked" not in st.session_state:
     st.session_state.secret_tabs_unlocked = []
 if "equipped_animation" not in st.session_state:
     st.session_state.equipped_animation = None
+if "user_stats" not in st.session_state:
+    st.session_state.user_stats = {
+        "level": 1,
+        "xp": 0,
+        "strength": 5,
+        "focus": 5,
+        "creativity": 5,
+        "resilience": 5
+    }
 
 # --- Unlockable Skills ---
 UNLOCKS = {
@@ -110,7 +119,7 @@ def check_secret_tabs():
 check_secret_tabs()
 
 # --- Render Tabs ---
-tabs = st.tabs(["Main", "Vybe Royale", "Mood Tracker", "Profile", "Personality Kwyz", "VybeShop"] + st.session_state.secret_tabs_unlocked)
+tabs = st.tabs(["Main", "Vybe Royale", "Mood Tracker", "Profile", "Personality Kwyz", "VybeShop", "Characters"] + st.session_state.secret_tabs_unlocked)
 
 with tabs[0]:
     st.title("🌟 Welcome to Vyral")
@@ -170,6 +179,18 @@ with tabs[5]:
                 if st.button(f"Equip {item}", key=f"equip_{item}"):
                     st.session_state.equipped_animation = item
                     st.success(f"Equipped {item}!")
+
+with tabs[6]:
+    st.subheader("📇 Characters")
+    for player in st.session_state.players:
+        st.markdown(f"### {player}")
+        st.markdown("- Level: {}".format(st.session_state.user_stats["level"]))
+        st.markdown("- XP: {}".format(st.session_state.user_stats["xp"]))
+        st.markdown("- Strength: {}".format(st.session_state.user_stats["strength"]))
+        st.markdown("- Focus: {}".format(st.session_state.user_stats["focus"]))
+        st.markdown("- Creativity: {}".format(st.session_state.user_stats["creativity"]))
+        st.markdown("- Resilience: {}".format(st.session_state.user_stats["resilience"]))
+        st.markdown("---")
 
 if "Echo Core" in st.session_state.secret_tabs_unlocked:
     with tabs[-len(st.session_state.secret_tabs_unlocked)]:
