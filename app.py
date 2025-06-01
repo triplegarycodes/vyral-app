@@ -124,7 +124,11 @@ with tabs[2]:
 
 with tabs[3]:
     st.subheader("🧑‍🎤 Profile")
-    st.write("Your Vyber identity and progress.")
+    if st.session_state.vyber_type:
+        st.markdown(f"### Your Type: {st.session_state.vyber_type}")
+        st.markdown(f"**Unlocked Skills:** {', '.join(UNLOCKS.get(st.session_state.vyber_type, []))}")
+        st.markdown(f"<div style='background:{VYBER_THEMES[st.session_state.vyber_type]};padding:1em;border-radius:10px;color:white;'>You are on the {st.session_state.vyber_type} path. Let your unique strengths shine!</div>", unsafe_allow_html=True)
+        st.image(f"images/{st.session_state.vyber_type.lower()}.png", caption="Your Energy Avatar", use_column_width=True)
 
 with tabs[4]:
     st.subheader("🧪 Personality Kwyz")
@@ -191,4 +195,3 @@ if "Echo Core" in st.session_state.secret_tabs_unlocked:
             with st.expander(f"{frag['type']} - {frag['title']}"):
                 st.markdown(f"**Fragment ID:** {frag['id']}")
                 st.markdown(f"**Details:** {frag['details']}")
-
