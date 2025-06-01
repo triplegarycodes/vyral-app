@@ -2,6 +2,9 @@ import streamlit as st
 import random
 import time
 import graphviz
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
 st.set_page_config(layout="wide")
 
@@ -28,6 +31,8 @@ if "auto_run_royale" not in st.session_state:
     st.session_state.auto_run_royale = False
 if "unlocked_skills" not in st.session_state:
     st.session_state.unlocked_skills = {"Root Skill"}
+if "mood_log" not in st.session_state:
+    st.session_state.mood_log = []
 
 # --- THEME FUNCTION ---
 def apply_theme(theme_name):
@@ -129,7 +134,9 @@ def coachbot_mood_response(user_input):
     }
     for mood, response in mood_keywords.items():
         if mood in user_input.lower():
+            st.session_state.mood_log.append((time.time(), mood))
             return response
+    st.session_state.mood_log.append((time.time(), "neutral"))
     return "💬 Let’s make that a SMART goal!"
 
 # --- APPLY THEME BASED ON VIBE ---
@@ -140,51 +147,65 @@ elif len(st.session_state.coachbot_data["emotions"]) + len(st.session_state.coac
 else:
     apply_theme("Focus Drift")
 
-# --- Main App Content ---
-st.title("🔥 CoachBot Chat + Vybe Royale | Vyral App")
-st.caption("CoachBot adapts to your vibes and tracks your journey live ✨")
+# --- Tabs ---
+tabs = st.tabs(["Chat", "Vybe Royale", "Mood Tracker", "Profile"])
 
-user_input = st.text_input("Talk to CoachBot:", placeholder="What's on your mind today?")
-if st.button("Send") and user_input:
-    st.session_state.messages.append(("You", user_input))
-    response = coachbot_mood_response(user_input)
-    st.session_state.messages.append(("CoachBot", response))
+# --- Tab 1: Chat ---
+with tabs[0]:
+    st.title("🔥 CoachBot Chat")
+    user_input = st.text_input("Talk to CoachBot:", placeholder="What's on your mind today?")
+    if st.button("Send") and user_input:
+        st.session_state.messages.append(("You", user_input))
+        response = coachbot_mood_response(user_input)
+        st.session_state.messages.append(("CoachBot", response))
 
-for speaker, msg in st.session_state.messages:
-    with st.chat_message(name=speaker):
-        st.markdown(msg)
+    for speaker, msg in st.session_state.messages:
+        with st.chat_message(name=speaker):
+            st.markdown(msg)
 
-st.header("🎮 Vybe Royale Zone")
+# --- Tab 2: Vybe Royale ---
+with tabs[1]:
+    st.header("🎮 Vybe Royale Zone")
 
-# --- Vybe Royale Function ---
-def simulate_vybe_royale():
-    outcomes = [
-        "🌟 Bonus confidence unlocked +30 points",
-        "🔮 Future vision unlocked +20 clout",
-        "🌝 Epiphany moment! +30 clout",
-        "🌀 Tornado of distraction -20 points",
-        "🔥 Overheated by pressure -15 points",
-        "💰 Rare clarity moment! +50 clout"
-    ]
-    outcome = random.choice(outcomes)
-    if "-" in outcome:
-        value = int(outcome.split('-')[-1].split(' ')[0])
-        st.session_state.vybe_royale_score -= value
-        splash_animation("shake")
-    elif "+" in outcome:
-        value = int(outcome.split('+')[-1].split(' ')[0])
-        st.session_state.vybe_royale_score += value
-        splash_animation("unlock")
-    st.session_state.reward_animation = outcome
-    return outcome
+    def simulate_vybe_royale():
+        outcomes = [
+            "🌟 Bonus confidence unlocked +30 points",
+            "🔮 Future vision unlocked +20 clout",
+            "🌝 Epiphany moment! +30 clout",
+            "🌀 Tornado of distraction -20 points",
+            "🔥 Overheated by pressure -15 points",
+            "💰 Rare clarity moment! +50 clout"
+        ]
+        outcome = random.choice(outcomes)
+        if "-" in outcome:
+            value = int(outcome.split('-')[-1].split(' ')[0])
+            st.session_state.vybe_royale_score -= value
+            splash_animation("shake")
+        elif "+" in outcome:
+            value = int(outcome.split('+')[-1].split(' ')[0])
+            st.session_state.vybe_royale_score += value
+            splash_animation("unlock")
+        st.session_state.reward_animation = outcome
+        return outcome
 
-if st.button("Play Round 🎲"):
-    result = simulate_vybe_royale()
-    st.success(f"Result: {result}")
+    if st.button("Play Round 🎲"):
+        result = simulate_vybe_royale()
+        st.success(f"Result: {result}")
 
-st.metric("🧠 Mental Health Points", st.session_state.vybe_royale_score)
+    st.metric("🧠 Mental Health Points", st.session_state.vybe_royale_score)
 
-# --- Profile Card Section ---
+# --- Tab 3: Mood Tracker ---
+with tabs[2]:
+    st.header("📊 Mood Tracker")
+    if st.session_state.mood_log:
+        df = pd.DataFrame(st.session_state.mood_log, columns=["timestamp", "mood"])
+        df["time"] = pd.to_datetime(df["timestamp"], unit="s")
+        mood_counts = df.groupby(["time", "mood"]).size().unstack(fill_value=0)
+        st.line_chart(mood_counts)
+    else:
+        st.info("Start chatting with CoachBot to track your mood!")
+
+# --- Tab 4: Profile ---
 def profile_card(name, score, skills):
     st.markdown(f"""
         <div style='border-radius: 15px; padding: 1.5rem; margin: 1rem 0; background: linear-gradient(145deg, #e6e6e6, #ffffff); box-shadow: 6px 6px 12px #cccccc, -6px -6px 12px #ffffff;'>
@@ -194,7 +215,6 @@ def profile_card(name, score, skills):
         </div>
     """, unsafe_allow_html=True)
 
-st.header("💼 Vyber Profile")
-profile_card("You", st.session_state.vybe_royale_score, st.session_state.unlocked_skills)
-
-
+with tabs[3]:
+    st.header("💼 Vyber Profile")
+    profile_card("You", st.session_state.vybe_royale_score, st.session_state.unlocked_skills)
