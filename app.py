@@ -43,6 +43,8 @@ if "bg_scroll_position" not in st.session_state:
     st.session_state.bg_scroll_position = 0
 if "quiz_answers" not in st.session_state:
     st.session_state.quiz_answers = []
+if "vyber_type" not in st.session_state:
+    st.session_state.vyber_type = None
 
 # --- CUSTOM BACKGROUND UPLOAD ---
 st.sidebar.subheader("🌅 Customize Background")
@@ -127,18 +129,20 @@ with tabs[2]:
         st.info("Start chatting with CoachBot to track your mood!")
 
 # --- Tab 4: Profile ---
-def profile_card(name, score, skills):
+def profile_card(name, score, skills, vyber_type):
+    type_desc = f"<p><strong>Vyber Type:</strong> {vyber_type}</p>" if vyber_type else "<p><em>Take the Kwyz to discover your Vyber Type!</em></p>"
     st.markdown(f"""
         <div style='border-radius: 15px; padding: 1.5rem; margin: 1rem 0; background: linear-gradient(145deg, #e6e6e6, #ffffff); box-shadow: 6px 6px 12px #cccccc, -6px -6px 12px #ffffff;'>
             <h3 style='margin-bottom: 0.5rem;'>{name}</h3>
             <p><strong>Vybe Score:</strong> {score}</p>
             <p><strong>Skills:</strong> {', '.join(skills)}</p>
+            {type_desc}
         </div>
     """, unsafe_allow_html=True)
 
 with tabs[3]:
     st.header("💼 Vyber Profile")
-    profile_card("You", st.session_state.vybe_royale_score, st.session_state.unlocked_skills)
+    profile_card("You", st.session_state.vybe_royale_score, st.session_state.unlocked_skills, st.session_state.vyber_type)
 
 # --- Tab 5: Kwyz ---
 with tabs[4]:
@@ -182,8 +186,10 @@ with tabs[4]:
         for comb, result in combinations.items():
             if all(opt in answers for opt in comb):
                 st.success(f"You are a **{result}** ✨")
+                st.session_state.vyber_type = result
                 break
         else:
             chosen = random.choice(list(scores.keys()))
             st.success(f"You are a **{chosen}** ✨")
+            st.session_state.vyber_type = chosen
 
