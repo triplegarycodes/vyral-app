@@ -39,12 +39,16 @@ if "custom_bg" not in st.session_state:
     st.session_state.custom_bg = None
 if "hue_adjust" not in st.session_state:
     st.session_state.hue_adjust = 1.0
+if "bg_scroll_position" not in st.session_state:
+    st.session_state.bg_scroll_position = 0
 
 # --- CUSTOM BACKGROUND UPLOAD ---
 st.sidebar.subheader("🌅 Customize Background")
 bg_file = st.sidebar.file_uploader("Upload background image", type=["png", "jpg", "jpeg"])
 hue = st.sidebar.slider("Adjust hue/saturation", 0.5, 2.0, 1.0, 0.1)
+scroll_offset = st.sidebar.slider("Scroll background vertically", -2000, 2000, 0, step=10)
 st.session_state.hue_adjust = hue
+st.session_state.bg_scroll_position = scroll_offset
 
 if bg_file:
     image = Image.open(bg_file).convert("RGBA")
@@ -57,9 +61,9 @@ if bg_file:
     custom_css = f"""
         <style>
         .main, .stApp {{
-            background-image: url("{encoded_bg}");
+            background-image: url('{encoded_bg}');
             background-size: cover;
-            background-position: center;
+            background-position: center {scroll_offset}px;
         }}
         </style>
     """
@@ -150,5 +154,6 @@ def profile_card(name, score, skills):
 with tabs[3]:
     st.header("💼 Vyber Profile")
     profile_card("You", st.session_state.vybe_royale_score, st.session_state.unlocked_skills)
+
 
 
