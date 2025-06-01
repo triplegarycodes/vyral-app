@@ -4,6 +4,9 @@ import time
 import graphviz
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+from PIL import Image, ImageEnhance
+import io
 
 st.set_page_config(layout="wide")
 
@@ -32,60 +35,51 @@ if "unlocked_skills" not in st.session_state:
     st.session_state.unlocked_skills = {"Root Skill"}
 if "mood_log" not in st.session_state:
     st.session_state.mood_log = []
-if "theme_choice" not in st.session_state:
-    st.session_state.theme_choice = "Focus Drift"
+if "custom_bg" not in st.session_state:
+    st.session_state.custom_bg = None
+if "hue_adjust" not in st.session_state:
+    st.session_state.hue_adjust = 1.0
 
-# --- THEME FUNCTION ---
-def apply_theme(theme_name):
-    css_dict = {
-        "Focus Drift": """
-            <style>
-            .main, .stApp {
-                background: radial-gradient(circle, #cceeff, #ffffff);
-                animation: drift 5s infinite alternate;
-                color: #111 !important;
-            }
-            @keyframes drift {
-                from { filter: brightness(0.95); }
-                to { filter: brightness(1.05); }
-            }
-            </style>
-        """,
-        "Mood Burst": """
-            <style>
-            .main, .stApp {
-                background: linear-gradient(to right, #ffb3ba, #ffdfba, #ffffba, #baffc9, #bae1ff);
-                background-size: 500% 500%;
-                animation: moodburst 15s ease infinite;
-                color: #111 !important;
-            }
-            @keyframes moodburst {
-                0% { background-position: 0% 50%; }
-                100% { background-position: 100% 50%; }
-            }
-            </style>
-        """,
-        "Heat Up Mode": """
-            <style>
-            .main, .stApp {
-                background: linear-gradient(45deg, #ff4e50, #f9d423);
-                animation: heatup 2s infinite alternate;
-                color: #111 !important;
-            }
-            @keyframes heatup {
-                from { filter: hue-rotate(0deg); }
-                to { filter: hue-rotate(30deg); }
-            }
-            </style>
-        """
+# --- CUSTOM BACKGROUND UPLOAD ---
+st.sidebar.subheader("🌅 Customize Background")
+bg_file = st.sidebar.file_uploader("Upload background image", type=["png", "jpg", "jpeg"])
+hue = st.sidebar.slider("Adjust hue/saturation", 0.5, 2.0, 1.0, 0.1)
+st.session_state.hue_adjust = hue
+
+if bg_file:
+    image = Image.open(bg_file).convert("RGBA")
+    enhancer = ImageEnhance.Color(image)
+    image = enhancer.enhance(hue)
+    buffered = io.BytesIO()
+    image.save(buffered, format="PNG")
+    bg_str = buffered.getvalue()
+    encoded_bg = "data:image/png;base64," + base64.b64encode(bg_str).decode()
+    custom_css = f"""
+        <style>
+        .main, .stApp {{
+            background-image: url("{encoded_bg}");
+            background-size: cover;
+            background-position: center;
+        }}
+        </style>
+    """
+    st.markdown(custom_css, unsafe_allow_html=True)
+
+# --- COACHBOT MOOD RESPONSE ---
+def coachbot_mood_response(user_input):
+    mood_keywords = {
+        "anxious": "🧘 Breathe deep. We can work through it.",
+        "tired": "😴 Let’s build a rest-recovery plan.",
+        "pumped": "🔥 You’re on fire. Let’s channel it.",
+        "sad": "💙 I got you. What’s one thing you’re proud of?",
+        "focused": "🎯 Locked in. Let’s sharpen your goals."
     }
-    st.markdown(css_dict.get(theme_name, ""), unsafe_allow_html=True)
-
-apply_theme(st.session_state.theme_choice)
-
-# --- Theme Selector ---
-st.sidebar.header("🖌️ Theme Settings")
-st.session_state.theme_choice = st.sidebar.selectbox("Choose Theme", ["Focus Drift", "Mood Burst", "Heat Up Mode"])
+    for mood, response in mood_keywords.items():
+        if mood in user_input.lower():
+            st.session_state.mood_log.append((time.time(), mood))
+            return response
+    st.session_state.mood_log.append((time.time(), "neutral"))
+    return "💬 Let’s make that a SMART goal!"
 
 # --- Tabs ---
 tabs = st.tabs(["Chat", "Vybe Royale", "Mood Tracker", "Profile"])
@@ -96,7 +90,8 @@ with tabs[0]:
     user_input = st.text_input("Talk to CoachBot:", placeholder="What's on your mind today?")
     if st.button("Send") and user_input:
         st.session_state.messages.append(("You", user_input))
-        st.session_state.messages.append(("CoachBot", "Let's make that a SMART goal!"))
+        response = coachbot_mood_response(user_input)
+        st.session_state.messages.append(("CoachBot", response))
 
     for speaker, msg in st.session_state.messages:
         with st.chat_message(name=speaker):
@@ -155,4 +150,5 @@ def profile_card(name, score, skills):
 with tabs[3]:
     st.header("💼 Vyber Profile")
     profile_card("You", st.session_state.vybe_royale_score, st.session_state.unlocked_skills)
+
 
