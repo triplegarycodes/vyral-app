@@ -11,21 +11,58 @@ import base64
 st.set_page_config(layout="wide")
 
 # --- Initialize session state ---
-if "username" not in st.session_state:
-    st.session_state.username = None
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-# ... [rest of session_state setup unchanged] ...
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "coachbot_data" not in st.session_state:
+    st.session_state.coachbot_data = {
+        "topics": set(),
+        "emotions": set(),
+        "message_count": 0
+    }
+if "vybe_royale_score" not in st.session_state:
+    st.session_state.vybe_royale_score = 100
+if "players" not in st.session_state:
+    st.session_state.players = ["Zayn", "Wren", "Aari", "CoachBot", "You"]
+if "reward_animation" not in st.session_state:
+    st.session_state.reward_animation = None
+if "vybux" not in st.session_state:
+    st.session_state.vybux = 50
+if "unlocked_animations" not in st.session_state:
+    st.session_state.unlocked_animations = []
+if "auto_run_royale" not in st.session_state:
+    st.session_state.auto_run_royale = False
+if "unlocked_skills" not in st.session_state:
+    st.session_state.unlocked_skills = {"Root Skill"}
+if "mood_log" not in st.session_state:
+    st.session_state.mood_log = []
+if "custom_bg" not in st.session_state:
+    st.session_state.custom_bg = None
+if "hue_adjust" not in st.session_state:
+    st.session_state.hue_adjust = 1.0
+if "bg_scroll_position" not in st.session_state:
+    st.session_state.bg_scroll_position = 0
+if "quiz_answers" not in st.session_state:
+    st.session_state.quiz_answers = []
+if "vyber_type" not in st.session_state:
+    st.session_state.vyber_type = None
+if "secret_tabs_unlocked" not in st.session_state:
+    st.session_state.secret_tabs_unlocked = []
 
-# --- LOGIN SCREEN ---
-if not st.session_state.logged_in:
-    st.title("🌟 Welcome to Vyral App")
-    username = st.text_input("Enter your username to begin:")
-    if st.button("Login") and username:
-        st.session_state.username = username
-        st.session_state.logged_in = True
-        st.experimental_rerun()
-    st.stop()
+# --- Unlockable Skills ---
+UNLOCKS = {
+    "Visionary": ["Futurecast", "Clarity Surge"],
+    "Empath": ["Emowave", "Kindforce"],
+    "Rebel": ["Chaos Control", "Solo Surge"],
+    "Seeker": ["Pathfinder", "Inner Echo"],
+    "Strategist": ["Mind Grid", "Flow Hack"],
+    "Healer": ["Heartlight", "Mendstorm"],
+    "Shadow": ["Veil Pierce", "Echo Lock"],
+    "Sage": ["Wisdom Well", "Golden Thread"],
+    "Dreamer": ["Lucid Leap", "Echo Pulse"],
+    "Explorer": ["Trailcode", "Wander Blink"],
+    "Phoenix": ["Flareborn", "Ash Reboot"],
+    "Anchor": ["Groundflare", "Soul Hold"]
+}
 
 # --- Custom Theme Colors ---
 VYBER_THEMES = {
@@ -43,53 +80,115 @@ VYBER_THEMES = {
     "Anchor": "#1e90ff"
 }
 
-# --- BACKGROUND CUSTOMIZATION (unchanged) ---
-# ... [upload image and custom background setup] ...
+# --- Secret Tabs Unlock Logic ---
+def check_secret_tabs():
+    if (st.session_state.vybe_royale_score >= 200 and
+        len(st.session_state.unlocked_skills) >= 4 and
+        st.session_state.vyber_type in ["Strategist", "Dreamer"]):
+        if "Echo Core" not in st.session_state.secret_tabs_unlocked:
+            st.session_state.secret_tabs_unlocked.append("Echo Core")
 
-# --- TABS ---
-tabs = st.tabs(["Chat", "Vybe Royale", "Mood Tracker", "Profile", "Kwyz"])
+    if (len(st.session_state.mood_log) >= 3 and
+        any(mood[1] in ["sad", "angry", "anxious"] for mood in st.session_state.mood_log) and
+        st.session_state.coachbot_data["message_count"] > 5):
+        if "Nullwave Anomaly" not in st.session_state.secret_tabs_unlocked:
+            st.session_state.secret_tabs_unlocked.append("Nullwave Anomaly")
 
-# --- Tab 1: Chat (unchanged) ---
+    if (st.session_state.custom_bg and
+        st.session_state.bg_scroll_position <= -1500 and
+        st.session_state.vyber_type in ["Shadow", "Explorer"]):
+        if "Hidden Chamber" not in st.session_state.secret_tabs_unlocked:
+            st.session_state.secret_tabs_unlocked.append("Hidden Chamber")
 
-# --- Tab 2: Vybe Royale (unchanged) ---
+    if ("I remember..." in [msg[1] for msg in st.session_state.messages] and
+        time.strftime("%A") == "Sunday"):
+        if "Legacy Mode" not in st.session_state.secret_tabs_unlocked:
+            st.session_state.secret_tabs_unlocked.append("Legacy Mode")
 
-# --- Tab 3: Mood Tracker (unchanged) ---
+check_secret_tabs()
 
-# --- Tab 4: Profile ---
-def profile_card(name, score, skills, vyber_type):
-    color = VYBER_THEMES.get(vyber_type, "#cccccc")
-    badge_html = f"""
-        <div style='padding: 0.5rem; margin-top: 1rem; border: 2px dashed {color}; border-radius: 10px; display:inline-block;'>🎖️ <strong>{vyber_type} Badge</strong></div>
-    """ if vyber_type else ""
+# --- Render Tabs ---
+tabs = st.tabs(["Main", "Vybe Royale", "Mood Tracker", "Profile", "Personality Kwyz"] + st.session_state.secret_tabs_unlocked)
 
-    image_html = ""
-    if vyber_type:
-        image_html = f"""
-        <img src='https://source.unsplash.com/featured/?{vyber_type}' style='width:100%; border-radius:12px; margin-top:10px;'>
-        """
+with tabs[0]:
+    st.title("🌟 Welcome to Vyral")
+    st.write("Main features and dashboard will go here.")
 
-    text_overlay = {
-        "Dreamer": "You drift between worlds, weaving dreams into your reality.",
-        "Rebel": "You bend the rules, break the mold, and lead revolutions.",
-        "Strategist": "You’re ten steps ahead. Always.",
-        "Phoenix": "Born from chaos, you rise in flames."
-    }.get(vyber_type, "Embrace your vibe.")
+with tabs[1]:
+    st.subheader("🎮 Vybe Royale")
+    st.write("Play the game and earn rewards.")
 
-    st.markdown(f"""
-        <div style='border-radius: 15px; padding: 1.5rem; margin: 1rem 0; background: linear-gradient(145deg, {color}33, #ffffff); box-shadow: 6px 6px 12px #cccccc, -6px -6px 12px #ffffff;'>
-            <h3 style='margin-bottom: 0.5rem;'>Welcome, {name}</h3>
-            <p><strong>Vybe Score:</strong> {score}</p>
-            <p><strong>Skills:</strong> {', '.join(skills)}</p>
-            <p><strong>Vyber Type:</strong> <span style='color:{color};'>{vyber_type}</span></p>
-            <p><em>{text_overlay}</em></p>
-            {badge_html}
-            {image_html}
-        </div>
-    """, unsafe_allow_html=True)
+with tabs[2]:
+    st.subheader("📈 Mood Tracker")
+    st.write("Track and visualize your mood over time.")
 
 with tabs[3]:
-    st.header("💼 Vyber Profile")
-    profile_card(st.session_state.username, st.session_state.vybe_royale_score, st.session_state.unlocked_skills, st.session_state.vyber_type)
+    st.subheader("🧑‍🎤 Profile")
+    st.write("Your Vyber identity and progress.")
 
-# --- Tab 5: Kwyz (unchanged) ---
+with tabs[4]:
+    st.subheader("🧪 Personality Kwyz")
+    st.write("Find out what kind of Vyber you are!")
+
+    questions = [
+        ("You walk into a new space. What's your instinct?", ["Observe and plan", "Talk to someone", "Find the exit", "Touch everything"]),
+        ("When you're stressed, you...", ["Retreat inward", "Call a friend", "Channel it into art", "Challenge yourself to solve it"]),
+        ("You’d rather be known for your...", ["Wisdom", "Compassion", "Drive", "Curiosity"]),
+        ("Which sound feels the most like you?", ["Crackling fire", "Ocean waves", "Typing keyboard", "Echo in a cave"]),
+        ("If your mind had a color, it’d be...", ["Deep blue", "Electric orange", "Bright gold", "Smoky grey"]),
+        ("Your vibe is most aligned with...", ["Mystery", "Logic", "Heart", "Adventure"]),
+        ("You’d rather time travel to...", ["Ancient past", "Far future", "A different self", "A dream world"]),
+        ("Biggest strength in a crisis?", ["Staying calm", "Helping others", "Solving fast", "Finding meaning"]),
+        ("You often wonder...", ["Why things happen", "What others feel", "What’s next", "What’s hidden"]),
+        ("At your core, you’re...", ["A seeker", "A rebel", "A protector", "A thinker"]),
+    ]
+
+    vyber_counter = {key: 0 for key in VYBER_THEMES.keys()}
+
+    for i, (q, options) in enumerate(questions):
+        st.markdown(f"**{i+1}. {q}**")
+        choice = st.radio("", options, key=f"q{i}")
+        if choice:
+            if "calm" in choice or "thinker" in choice:
+                vyber_counter["Strategist"] += 1
+            elif "others" in choice or "compassion" in choice:
+                vyber_counter["Empath"] += 1
+            elif "hidden" in choice or "mystery" in choice:
+                vyber_counter["Shadow"] += 1
+            elif "dream" in choice or "curiosity" in choice:
+                vyber_counter["Dreamer"] += 1
+            elif "fire" in choice or "drive" in choice:
+                vyber_counter["Phoenix"] += 1
+            elif "plan" in choice or "logic" in choice:
+                vyber_counter["Sage"] += 1
+            elif "adventure" in choice or "explorer" in choice:
+                vyber_counter["Explorer"] += 1
+            elif "heart" in choice or "protector" in choice:
+                vyber_counter["Healer"] += 1
+            elif "seeker" in choice or "meaning" in choice:
+                vyber_counter["Seeker"] += 1
+            elif "rebel" in choice or "challenge" in choice:
+                vyber_counter["Rebel"] += 1
+            else:
+                vyber_counter["Visionary"] += 1
+
+    if st.button("Submit Quiz"):
+        top_type = max(vyber_counter, key=vyber_counter.get)
+        st.session_state.vyber_type = top_type
+        st.success(f"You are a {top_type}! Welcome to the {top_type} path.")
+        st.balloons()
+
+if "Echo Core" in st.session_state.secret_tabs_unlocked:
+    with tabs[-len(st.session_state.secret_tabs_unlocked)]:
+        st.subheader("🧠 Echo Core")
+        st.markdown("This is your memory web. Rearrange fragments to find the truth.")
+        fragments = [
+            {"id": 1, "title": "The Day I Froze", "type": "Emotion Swirl", "details": "An anxious shutdown moment in Bio class."},
+            {"id": 2, "title": "The CoachBot Paradox", "type": "Thought Pulse", "details": "You once told CoachBot a lie... why?"},
+            {"id": 3, "title": "Zayn’s Question", "type": "Old Message", "details": "You brushed off Zayn’s curiosity, but it stuck with you."},
+        ]
+        for frag in fragments:
+            with st.expander(f"{frag['type']} - {frag['title']}"):
+                st.markdown(f"**Fragment ID:** {frag['id']}")
+                st.markdown(f"**Details:** {frag['details']}")
 
