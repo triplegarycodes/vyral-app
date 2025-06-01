@@ -41,8 +41,8 @@ if "hue_adjust" not in st.session_state:
     st.session_state.hue_adjust = 1.0
 if "bg_scroll_position" not in st.session_state:
     st.session_state.bg_scroll_position = 0
-if "quiz_responses" not in st.session_state:
-    st.session_state.quiz_responses = {}
+if "quiz_answers" not in st.session_state:
+    st.session_state.quiz_answers = []
 
 # --- CUSTOM BACKGROUND UPLOAD ---
 st.sidebar.subheader("🌅 Customize Background")
@@ -71,24 +71,8 @@ if bg_file:
     """
     st.markdown(custom_css, unsafe_allow_html=True)
 
-# --- COACHBOT MOOD RESPONSE ---
-def coachbot_mood_response(user_input):
-    mood_keywords = {
-        "anxious": "🧘 Breathe deep. We can work through it.",
-        "tired": "😴 Let’s build a rest-recovery plan.",
-        "pumped": "🔥 You’re on fire. Let’s channel it.",
-        "sad": "💙 I got you. What’s one thing you’re proud of?",
-        "focused": "🎯 Locked in. Let’s sharpen your goals."
-    }
-    for mood, response in mood_keywords.items():
-        if mood in user_input.lower():
-            st.session_state.mood_log.append((time.time(), mood))
-            return response
-    st.session_state.mood_log.append((time.time(), "neutral"))
-    return "💬 Let’s make that a SMART goal!"
-
-# --- Tabs ---
-tabs = st.tabs(["Chat", "Vybe Royale", "Mood Tracker", "Profile", "Personality Kwyz"])
+# --- TABS ---
+tabs = st.tabs(["Chat", "Vybe Royale", "Mood Tracker", "Profile", "Kwyz"])
 
 # --- Tab 1: Chat ---
 with tabs[0]:
@@ -96,8 +80,7 @@ with tabs[0]:
     user_input = st.text_input("Talk to CoachBot:", placeholder="What's on your mind today?")
     if st.button("Send") and user_input:
         st.session_state.messages.append(("You", user_input))
-        response = coachbot_mood_response(user_input)
-        st.session_state.messages.append(("CoachBot", response))
+        st.session_state.messages.append(("CoachBot", "Let’s make that a SMART goal!"))
 
     for speaker, msg in st.session_state.messages:
         with st.chat_message(name=speaker):
@@ -157,50 +140,50 @@ with tabs[3]:
     st.header("💼 Vyber Profile")
     profile_card("You", st.session_state.vybe_royale_score, st.session_state.unlocked_skills)
 
-# --- Tab 5: Personality Kwyz ---
+# --- Tab 5: Kwyz ---
 with tabs[4]:
-    st.header("🧠 Personality Kwyz")
+    st.header("🔮 Personality Kwyz")
 
-    questions = [
-        {
-            "question": "How do you handle new challenges?",
-            "answers": {
-                "I plan ahead and map strategies": "Strategist",
-                "I jump in and adapt fast": "Executor",
-                "I pause and reflect before acting": "Seeker",
-                "I ask others and gather support": "Connector"
-            }
-        },
-        {
-            "question": "What energizes you the most?",
-            "answers": {
-                "Solving a hard problem": "Strategist",
-                "Getting things done quickly": "Executor",
-                "Understanding how I feel": "Seeker",
-                "Being around inspiring people": "Connector"
-            }
-        },
-        # Add more questions up to 10
+    quiz = [
+        ("You wake up and the first thing you do is:", ["Check your phone", "Write your dreams down", "Plan your day", "Blast music"]),
+        ("Your friend cancels plans last-minute. You:", ["Get annoyed", "Feel relieved", "Worry about them", "Throw a solo party"]),
+        ("Pick a vibe:", ["Chill", "Driven", "Mysterious", "Creative"]),
+        ("When you’re overwhelmed, you:", ["Take a walk", "Cry it out", "Make a to-do list", "Zone out to music"]),
+        ("Biggest flex:", ["Empathy", "Discipline", "Imagination", "Adaptability"]),
+        ("Pick a setting:", ["Forest", "Skyscraper rooftop", "Bedroom", "Desert"]),
+        ("What motivates you most?", ["Success", "Love", "Ideas", "Chaos"]),
+        ("Choose your weapon:", ["Journal", "Laptop", "Microphone", "Sketchpad"]),
+        ("When life feels empty, what fills the gap?", ["Faith", "Friends", "Dreams", "Silence"]),
+        ("What’s your biggest fear?", ["Being forgotten", "Losing control", "Never knowing the truth", "Letting people down"])
     ]
 
-    for i, q in enumerate(questions):
-        st.radio(q["question"], list(q["answers"].keys()), key=f"quiz_q{i}")
+    scores = {
+        "Visionary": 0, "Empath": 0, "Rebel": 0, "Seeker": 0,
+        "Strategist": 0, "Healer": 0, "Shadow": 0, "Sage": 0,
+        "Dreamer": 0, "Explorer": 0, "Phoenix": 0, "Anchor": 0
+    }
 
-    if st.button("Submit Kwyz"):
-        counts = {"Strategist": 0, "Executor": 0, "Seeker": 0, "Connector": 0}
-        for i, q in enumerate(questions):
-            ans = st.session_state.get(f"quiz_q{i}")
-            if ans:
-                type_ = q["answers"][ans]
-                counts[type_] += 1
+    combinations = {
+        ("Write your dreams down", "Mysterious", "Imagination"): "Dreamer",
+        ("Plan your day", "Driven", "Discipline"): "Strategist",
+        ("Cry it out", "Empathy", "Love"): "Healer",
+        ("Throw a solo party", "Creative", "Chaos"): "Rebel",
+        ("Blast music", "Adaptability", "Microphone"): "Phoenix",
+        ("Check your phone", "Chill", "Friends"): "Anchor"
+    }
 
-        sorted_types = sorted(counts.items(), key=lambda x: -x[1])
-        top_type = sorted_types[0][0]
-        second_type = sorted_types[1][0] if sorted_types[1][1] == sorted_types[0][1] else None
+    for i, (q, options) in enumerate(quiz):
+        st.write(f"{i+1}. {q}")
+        choice = st.radio("", options, key=f"q{i}")
+        st.session_state.quiz_answers.append(choice)
 
-        result = f"🔍 Your dominant Vyber type: **{top_type}**"
-        if second_type:
-            result += f"\n🎭 You also align with **{second_type}**"
-
-        st.success(result)
+    if st.button("Reveal Vyber Type"):
+        answers = st.session_state.quiz_answers[-10:]
+        for comb, result in combinations.items():
+            if all(opt in answers for opt in comb):
+                st.success(f"You are a **{result}** ✨")
+                break
+        else:
+            chosen = random.choice(list(scores.keys()))
+            st.success(f"You are a **{chosen}** ✨")
 
