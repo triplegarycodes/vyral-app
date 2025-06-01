@@ -37,6 +37,7 @@ def apply_theme(theme_name):
             .main, .stApp {
                 background: radial-gradient(circle, #cceeff, #ffffff);
                 animation: drift 5s infinite alternate;
+                color: #111 !important;
             }
             @keyframes drift {
                 from { filter: brightness(0.95); }
@@ -50,6 +51,7 @@ def apply_theme(theme_name):
                 background: linear-gradient(to right, #ffb3ba, #ffdfba, #ffffba, #baffc9, #bae1ff);
                 background-size: 500% 500%;
                 animation: moodburst 15s ease infinite;
+                color: #111 !important;
             }
             @keyframes moodburst {
                 0% { background-position: 0% 50%; }
@@ -62,6 +64,7 @@ def apply_theme(theme_name):
             .main, .stApp {
                 background: linear-gradient(45deg, #ff4e50, #f9d423);
                 animation: heatup 2s infinite alternate;
+                color: #111 !important;
             }
             @keyframes heatup {
                 from { filter: hue-rotate(0deg); }
@@ -115,17 +118,21 @@ def splash_animation(effect):
             </style>
         """, unsafe_allow_html=True)
 
-# --- PROFILE CARD COMPONENT ---
-def profile_card(name, score, skills):
-    st.markdown(f"""
-        <div style='border-radius: 15px; padding: 1.5rem; margin: 1rem 0; background: linear-gradient(145deg, #e6e6e6, #ffffff); box-shadow: 6px 6px 12px #cccccc, -6px -6px 12px #ffffff;'>
-            <h3 style='margin-bottom: 0.5rem;'>{name}</h3>
-            <p><strong>Vybe Score:</strong> {score}</p>
-            <p><strong>Skills:</strong> {', '.join(skills)}</p>
-        </div>
-    """, unsafe_allow_html=True)
+# --- COACHBOT MOOD RESPONSE ---
+def coachbot_mood_response(user_input):
+    mood_keywords = {
+        "anxious": "🧘 Breathe deep. We can work through it.",
+        "tired": "😴 Let’s build a rest-recovery plan.",
+        "pumped": "🔥 You’re on fire. Let’s channel it.",
+        "sad": "💙 I got you. What’s one thing you’re proud of?",
+        "focused": "🎯 Locked in. Let’s sharpen your goals."
+    }
+    for mood, response in mood_keywords.items():
+        if mood in user_input.lower():
+            return response
+    return "💬 Let’s make that a SMART goal!"
 
-# --- APPLY THEME BASED ON STATE ---
+# --- APPLY THEME BASED ON VIBE ---
 if st.session_state.vybe_royale_score > 150:
     apply_theme("Heat Up Mode")
 elif len(st.session_state.coachbot_data["emotions"]) + len(st.session_state.coachbot_data["topics"]) > 5:
@@ -140,7 +147,8 @@ st.caption("CoachBot adapts to your vibes and tracks your journey live ✨")
 user_input = st.text_input("Talk to CoachBot:", placeholder="What's on your mind today?")
 if st.button("Send") and user_input:
     st.session_state.messages.append(("You", user_input))
-    st.session_state.messages.append(("CoachBot", "Let's make that a SMART goal!"))
+    response = coachbot_mood_response(user_input)
+    st.session_state.messages.append(("CoachBot", response))
 
 for speaker, msg in st.session_state.messages:
     with st.chat_message(name=speaker):
@@ -177,6 +185,16 @@ if st.button("Play Round 🎲"):
 st.metric("🧠 Mental Health Points", st.session_state.vybe_royale_score)
 
 # --- Profile Card Section ---
+def profile_card(name, score, skills):
+    st.markdown(f"""
+        <div style='border-radius: 15px; padding: 1.5rem; margin: 1rem 0; background: linear-gradient(145deg, #e6e6e6, #ffffff); box-shadow: 6px 6px 12px #cccccc, -6px -6px 12px #ffffff;'>
+            <h3 style='margin-bottom: 0.5rem;'>{name}</h3>
+            <p><strong>Vybe Score:</strong> {score}</p>
+            <p><strong>Skills:</strong> {', '.join(skills)}</p>
+        </div>
+    """, unsafe_allow_html=True)
+
 st.header("💼 Vyber Profile")
 profile_card("You", st.session_state.vybe_royale_score, st.session_state.unlocked_skills)
+
 
