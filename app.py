@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from PIL import Image, ImageEnhance
 import io
+import base64
 
 st.set_page_config(layout="wide")
 
