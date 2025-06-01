@@ -48,7 +48,6 @@ if "vyber_type" not in st.session_state:
 if "secret_tabs_unlocked" not in st.session_state:
     st.session_state.secret_tabs_unlocked = []
 
-# --- Unlockable Skills ---
 UNLOCKS = {
     "Visionary": ["Futurecast", "Clarity Surge"],
     "Empath": ["Emowave", "Kindforce"],
@@ -64,7 +63,6 @@ UNLOCKS = {
     "Anchor": ["Groundflare", "Soul Hold"]
 }
 
-# --- Custom Theme Colors ---
 VYBER_THEMES = {
     "Visionary": "#6c63ff",
     "Empath": "#ff69b4",
@@ -110,30 +108,63 @@ check_secret_tabs()
 # --- Render Tabs ---
 tabs = st.tabs(["Main", "Vybe Royale", "Mood Tracker", "Profile", "Personality Kwyz"] + st.session_state.secret_tabs_unlocked)
 
+# --- Main Tab ---
 with tabs[0]:
     st.title("🌟 Welcome to Vyral")
-    st.write("Main features and dashboard will go here.")
+    st.markdown("Your control center for everything Vybe.")
+    st.metric("💸 Vybux", st.session_state.vybux)
+    if st.session_state.vyber_type:
+        st.markdown(f"Today’s Wisdom for {st.session_state.vyber_type}: _Stay rooted, and rise._")
+    else:
+        st.markdown("Take the Personality Kwyz to begin your path.")
 
+# --- Vybe Royale Tab ---
 with tabs[1]:
     st.subheader("🎮 Vybe Royale")
-    st.write("Play the game and earn rewards.")
+    st.markdown("Battle vibes, dodge noise, and collect clarity.")
+    st.write(f"Score: {st.session_state.vybe_royale_score}")
+    if st.button("🔥 Run a Match"):
+        st.session_state.vybe_royale_score -= random.randint(5, 20)
+        st.session_state.vybux += random.randint(10, 30)
+        st.success("Match complete! Score adjusted. Vybux gained.")
+    if st.button("Auto Run Mode"):
+        st.session_state.auto_run_royale = not st.session_state.auto_run_royale
+    if st.session_state.auto_run_royale:
+        st.warning("Auto Running... Press again to stop.")
+        time.sleep(2)
+        st.session_state.vybe_royale_score -= random.randint(1, 10)
+        st.session_state.vybux += random.randint(5, 15)
 
+# --- Mood Tracker Tab ---
 with tabs[2]:
     st.subheader("📈 Mood Tracker")
-    st.write("Track and visualize your mood over time.")
+    mood = st.selectbox("Your current mood:", ["happy", "sad", "angry", "anxious", "chill", "excited"])
+    if st.button("Log Mood"):
+        st.session_state.mood_log.append((time.strftime("%Y-%m-%d"), mood))
+        st.success("Mood logged!")
+    if len(st.session_state.mood_log) >= 2:
+        mood_df = pd.DataFrame(st.session_state.mood_log, columns=["Date", "Mood"])
+        mood_df["Mood Score"] = mood_df["Mood"].map({"happy": 3, "chill": 2, "excited": 2, "sad": -2, "angry": -3, "anxious": -1})
+        st.line_chart(mood_df.set_index("Date")["Mood Score"])
 
+# --- Profile Tab ---
 with tabs[3]:
     st.subheader("🧑‍🎤 Profile")
     if st.session_state.vyber_type:
         st.markdown(f"### Your Type: {st.session_state.vyber_type}")
         st.markdown(f"**Unlocked Skills:** {', '.join(UNLOCKS.get(st.session_state.vyber_type, []))}")
         st.markdown(f"<div style='background:{VYBER_THEMES[st.session_state.vyber_type]};padding:1em;border-radius:10px;color:white;'>You are on the {st.session_state.vyber_type} path. Let your unique strengths shine!</div>", unsafe_allow_html=True)
+        st.metric("💸 Vybux", st.session_state.vybux)
+        st.markdown("**Badges:** 🏅Path Unlocked | 🎯Quiz Complete")
         st.image(f"images/{st.session_state.vyber_type.lower()}.png", caption="Your Energy Avatar", use_column_width=True)
+    else:
+        st.info("Take the Personality Kwyz to build your profile.")
 
+# --- Personality Kwyz Tab ---
 with tabs[4]:
     st.subheader("🧪 Personality Kwyz")
     st.write("Find out what kind of Vyber you are!")
-
+    
     questions = [
         ("You walk into a new space. What's your instinct?", ["Observe and plan", "Talk to someone", "Find the exit", "Touch everything"]),
         ("When you're stressed, you...", ["Retreat inward", "Call a friend", "Channel it into art", "Challenge yourself to solve it"]),
@@ -182,6 +213,7 @@ with tabs[4]:
         st.success(f"You are a {top_type}! Welcome to the {top_type} path.")
         st.balloons()
 
+# --- Echo Core Example Secret Tab ---
 if "Echo Core" in st.session_state.secret_tabs_unlocked:
     with tabs[-len(st.session_state.secret_tabs_unlocked)]:
         st.subheader("🧠 Echo Core")
@@ -195,3 +227,4 @@ if "Echo Core" in st.session_state.secret_tabs_unlocked:
             with st.expander(f"{frag['type']} - {frag['title']}"):
                 st.markdown(f"**Fragment ID:** {frag['id']}")
                 st.markdown(f"**Details:** {frag['details']}")
+
