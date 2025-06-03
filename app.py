@@ -10,54 +10,56 @@ import base64
 
 st.set_page_config(layout="wide")
 
-# --- Initialize session state ---
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-if "coachbot_data" not in st.session_state:
-    st.session_state.coachbot_data = {
-        "topics": set(),
-        "emotions": set(),
-        "message_count": 0
-    }
-if "vybe_royale_score" not in st.session_state:
-    st.session_state.vybe_royale_score = 100
-if "players" not in st.session_state:
-    st.session_state.players = ["Zayn", "Wren", "Aari", "CoachBot", "You"]
-if "reward_animation" not in st.session_state:
-    st.session_state.reward_animation = None
-if "vybux" not in st.session_state:
-    st.session_state.vybux = 50
-if "unlocked_animations" not in st.session_state:
-    st.session_state.unlocked_animations = []
-if "auto_run_royale" not in st.session_state:
-    st.session_state.auto_run_royale = False
-if "unlocked_skills" not in st.session_state:
-    st.session_state.unlocked_skills = {"Root Skill"}
-if "mood_log" not in st.session_state:
-    st.session_state.mood_log = []
-if "custom_bg" not in st.session_state:
-    st.session_state.custom_bg = None
-if "hue_adjust" not in st.session_state:
-    st.session_state.hue_adjust = 1.0
-if "bg_scroll_position" not in st.session_state:
-    st.session_state.bg_scroll_position = 0
-if "quiz_answers" not in st.session_state:
-    st.session_state.quiz_answers = []
-if "vyber_type" not in st.session_state:
-    st.session_state.vyber_type = None
-if "secret_tabs_unlocked" not in st.session_state:
-    st.session_state.secret_tabs_unlocked = []
-if "equipped_animation" not in st.session_state:
-    st.session_state.equipped_animation = None
-if "user_stats" not in st.session_state:
-    st.session_state.user_stats = {
-        "level": 1,
-        "xp": 0,
-        "strength": 5,
-        "focus": 5,
-        "creativity": 5,
-        "resilience": 5
-    }
+
+def initialize_session_state():
+    """Initialize all Streamlit session state defaults."""
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+    if "coachbot_data" not in st.session_state:
+        st.session_state.coachbot_data = {
+            "topics": set(),
+            "emotions": set(),
+            "message_count": 0,
+        }
+    if "vybe_royale_score" not in st.session_state:
+        st.session_state.vybe_royale_score = 100
+    if "players" not in st.session_state:
+        st.session_state.players = ["Zayn", "Wren", "Aari", "CoachBot", "You"]
+    if "reward_animation" not in st.session_state:
+        st.session_state.reward_animation = None
+    if "vybux" not in st.session_state:
+        st.session_state.vybux = 50
+    if "unlocked_animations" not in st.session_state:
+        st.session_state.unlocked_animations = []
+    if "auto_run_royale" not in st.session_state:
+        st.session_state.auto_run_royale = False
+    if "unlocked_skills" not in st.session_state:
+        st.session_state.unlocked_skills = {"Root Skill"}
+    if "mood_log" not in st.session_state:
+        st.session_state.mood_log = []
+    if "custom_bg" not in st.session_state:
+        st.session_state.custom_bg = None
+    if "hue_adjust" not in st.session_state:
+        st.session_state.hue_adjust = 1.0
+    if "bg_scroll_position" not in st.session_state:
+        st.session_state.bg_scroll_position = 0
+    if "quiz_answers" not in st.session_state:
+        st.session_state.quiz_answers = []
+    if "vyber_type" not in st.session_state:
+        st.session_state.vyber_type = None
+    if "secret_tabs_unlocked" not in st.session_state:
+        st.session_state.secret_tabs_unlocked = []
+    if "equipped_animation" not in st.session_state:
+        st.session_state.equipped_animation = None
+    if "user_stats" not in st.session_state:
+        st.session_state.user_stats = {
+            "level": 1,
+            "xp": 0,
+            "strength": 5,
+            "focus": 5,
+            "creativity": 5,
+            "resilience": 5,
+        }
 
 # --- Unlockable Skills ---
 UNLOCKS = {
@@ -118,91 +120,137 @@ def check_secret_tabs():
 
 check_secret_tabs()
 
-# --- Render Tabs ---
-tabs = st.tabs(["Main", "Vybe Royale", "Mood Tracker", "Profile", "Personality Kwyz", "VybeShop", "Characters"] + st.session_state.secret_tabs_unlocked)
 
-with tabs[0]:
-    st.title("🌟 Welcome to Vyral")
-    st.write("Main features and dashboard will go here.")
+def render_app():
+    """Render all tabs and interactive elements."""
+    tabs = st.tabs(
+        ["Main", "Vybe Royale", "Mood Tracker", "Profile", "Personality Kwyz", "VybeShop", "Characters"]
+        + st.session_state.secret_tabs_unlocked
+    )
 
-with tabs[1]:
-    st.subheader("🎮 Vybe Royale")
-    st.write("Play the game and earn rewards.")
+    with tabs[0]:
+        st.title("🌟 Welcome to Vyral")
+        st.write("Main features and dashboard will go here.")
 
-with tabs[2]:
-    st.subheader("📈 Mood Tracker")
-    st.write("Track and visualize your mood over time.")
-    if st.session_state.equipped_animation == "Mood Sparkle Animation":
-        st.markdown("<div style='color: #FFD700; font-size: 24px;'>✨✨ You're glowing with Mood Sparkle ✨✨</div>", unsafe_allow_html=True)
+    with tabs[1]:
+        st.subheader("🎮 Vybe Royale")
+        st.write("Play the game and earn rewards.")
 
-with tabs[3]:
-    st.subheader("🧑‍🎤 Profile")
-    if st.session_state.vyber_type:
-        st.markdown(f"### Your Type: {st.session_state.vyber_type}")
-        st.markdown(f"**Unlocked Skills:** {', '.join(UNLOCKS.get(st.session_state.vyber_type, []))}")
-        st.markdown(f"<div style='background:{VYBER_THEMES[st.session_state.vyber_type]};padding:1em;border-radius:10px;color:white;'>You are on the {st.session_state.vyber_type} path. Let your unique strengths shine!</div>", unsafe_allow_html=True)
-        st.image(f"images/{st.session_state.vyber_type.lower()}.png", caption="Your Energy Avatar", use_column_width=True)
+    with tabs[2]:
+        st.subheader("📈 Mood Tracker")
+        st.write("Track and visualize your mood over time.")
+        if st.session_state.equipped_animation == "Mood Sparkle Animation":
+            st.markdown(
+                "<div style='color: #FFD700; font-size: 24px;'>✨✨ You're glowing with Mood Sparkle ✨✨</div>",
+                unsafe_allow_html=True,
+            )
 
-with tabs[4]:
-    st.subheader("🧪 Personality Kwyz")
-    st.write("Find out what kind of Vyber you are!")
-    # ... existing quiz code ...
+    with tabs[3]:
+        st.subheader("🧑‍🎤 Profile")
+        if st.session_state.vyber_type:
+            st.markdown(f"### Your Type: {st.session_state.vyber_type}")
+            st.markdown(
+                f"**Unlocked Skills:** {', '.join(UNLOCKS.get(st.session_state.vyber_type, []))}"
+            )
+            st.markdown(
+                f"<div style='background:{VYBER_THEMES[st.session_state.vyber_type]};padding:1em;border-radius:10px;color:white;'>You are on the {st.session_state.vyber_type} path. Let your unique strengths shine!</div>",
+                unsafe_allow_html=True,
+            )
+            st.image(
+                f"images/{st.session_state.vyber_type.lower()}.png",
+                caption="Your Energy Avatar",
+                use_column_width=True,
+            )
 
-with tabs[5]:
-    st.subheader("🛍️ VybeShop")
-    st.markdown(f"You have **{st.session_state.vybux} VybuX**")
+    with tabs[4]:
+        st.subheader("🧪 Personality Kwyz")
+        st.write("Find out what kind of Vyber you are!")
+        # ... existing quiz code ...
 
-    shop_items = {
-        "Mood Sparkle Animation": 20,
-        "Alt Avatar Frame": 35,
-        "Secret Echo Fragment": 50,
-        "Custom Gradient Pack": 40,
-        "Vyber Sound Pack": 30,
-        "Mystery Box": 10,
-    }
+    with tabs[5]:
+        st.subheader("🛍️ VybeShop")
+        st.markdown(f"You have **{st.session_state.vybux} VybuX**")
 
-    for item, price in shop_items.items():
-        col1, col2, col3 = st.columns([2, 1, 1])
-        with col1:
-            st.markdown(f"**{item}** - {price} VybuX")
-        with col2:
-            if st.button(f"Buy {item}", key=f"buy_{item}"):
-                if st.session_state.vybux >= price:
-                    st.session_state.vybux -= price
-                    if item not in st.session_state.unlocked_animations:
-                        st.session_state.unlocked_animations.append(item)
-                    st.success(f"Purchased {item}!")
-                else:
-                    st.error("Not enough VybuX 😢")
-        with col3:
-            if item in st.session_state.unlocked_animations:
-                if st.button(f"Equip {item}", key=f"equip_{item}"):
-                    st.session_state.equipped_animation = item
-                    st.success(f"Equipped {item}!")
+        shop_items = {
+            "Mood Sparkle Animation": 20,
+            "Alt Avatar Frame": 35,
+            "Secret Echo Fragment": 50,
+            "Custom Gradient Pack": 40,
+            "Vyber Sound Pack": 30,
+            "Mystery Box": 10,
+        }
 
-with tabs[6]:
-    st.subheader("📇 Characters")
-    for player in st.session_state.players:
-        st.markdown(f"### {player}")
-        st.markdown("- Level: {}".format(st.session_state.user_stats["level"]))
-        st.markdown("- XP: {}".format(st.session_state.user_stats["xp"]))
-        st.markdown("- Strength: {}".format(st.session_state.user_stats["strength"]))
-        st.markdown("- Focus: {}".format(st.session_state.user_stats["focus"]))
-        st.markdown("- Creativity: {}".format(st.session_state.user_stats["creativity"]))
-        st.markdown("- Resilience: {}".format(st.session_state.user_stats["resilience"]))
-        st.markdown("---")
+        for item, price in shop_items.items():
+            col1, col2, col3 = st.columns([2, 1, 1])
+            with col1:
+                st.markdown(f"**{item}** - {price} VybuX")
+            with col2:
+                if st.button(f"Buy {item}", key=f"buy_{item}"):
+                    if st.session_state.vybux >= price:
+                        st.session_state.vybux -= price
+                        if item not in st.session_state.unlocked_animations:
+                            st.session_state.unlocked_animations.append(item)
+                        st.success(f"Purchased {item}!")
+                    else:
+                        st.error("Not enough VybuX 😢")
+            with col3:
+                if item in st.session_state.unlocked_animations:
+                    if st.button(f"Equip {item}", key=f"equip_{item}"):
+                        st.session_state.equipped_animation = item
+                        st.success(f"Equipped {item}!")
 
-if "Echo Core" in st.session_state.secret_tabs_unlocked:
-    with tabs[-len(st.session_state.secret_tabs_unlocked)]:
-        st.subheader("🧠 Echo Core")
-        st.markdown("This is your memory web. Rearrange fragments to find the truth.")
-        fragments = [
-            {"id": 1, "title": "The Day I Froze", "type": "Emotion Swirl", "details": "An anxious shutdown moment in Bio class."},
-            {"id": 2, "title": "The CoachBot Paradox", "type": "Thought Pulse", "details": "You once told CoachBot a lie... why?"},
-            {"id": 3, "title": "Zayn’s Question", "type": "Old Message", "details": "You brushed off Zayn’s curiosity, but it stuck with you."},
-        ]
-        for frag in fragments:
-            with st.expander(f"{frag['type']} - {frag['title']}"):
-                st.markdown(f"**Fragment ID:** {frag['id']}")
-                st.markdown(f"**Details:** {frag['details']}")
+    with tabs[6]:
+        st.subheader("📇 Characters")
+        for player in st.session_state.players:
+            st.markdown(f"### {player}")
+            st.markdown("- Level: {}".format(st.session_state.user_stats["level"]))
+            st.markdown("- XP: {}".format(st.session_state.user_stats["xp"]))
+            st.markdown("- Strength: {}".format(st.session_state.user_stats["strength"]))
+            st.markdown("- Focus: {}".format(st.session_state.user_stats["focus"]))
+            st.markdown(
+                "- Creativity: {}".format(st.session_state.user_stats["creativity"])
+            )
+            st.markdown(
+                "- Resilience: {}".format(st.session_state.user_stats["resilience"])
+            )
+            st.markdown("---")
+
+    if "Echo Core" in st.session_state.secret_tabs_unlocked:
+        with tabs[-len(st.session_state.secret_tabs_unlocked)]:
+            st.subheader("🧠 Echo Core")
+            st.markdown("This is your memory web. Rearrange fragments to find the truth.")
+            fragments = [
+                {
+                    "id": 1,
+                    "title": "The Day I Froze",
+                    "type": "Emotion Swirl",
+                    "details": "An anxious shutdown moment in Bio class.",
+                },
+                {
+                    "id": 2,
+                    "title": "The CoachBot Paradox",
+                    "type": "Thought Pulse",
+                    "details": "You once told CoachBot a lie... why?",
+                },
+                {
+                    "id": 3,
+                    "title": "Zayn’s Question",
+                    "type": "Old Message",
+                    "details": "You brushed off Zayn’s curiosity, but it stuck with you.",
+                },
+            ]
+            for frag in fragments:
+                with st.expander(f"{frag['type']} - {frag['title']}"):
+                    st.markdown(f"**Fragment ID:** {frag['id']}")
+                    st.markdown(f"**Details:** {frag['details']}")
+
+
+def main():
+    initialize_session_state()
+    check_secret_tabs()
+    render_app()
+
+
+if __name__ == "__main__":
+    main()
 
