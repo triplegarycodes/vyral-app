@@ -119,7 +119,7 @@ def check_secret_tabs():
 check_secret_tabs()
 
 # --- Render Tabs ---
-tabs = st.tabs(["Main", "Vybe Royale", "Mood Tracker", "Profile", "Personality Kwyz", "VybeShop", "Characters"] + st.session_state.secret_tabs_unlocked)
+tabs = st.tabs(["Main", "Vybe Royale", "Mood Tracker", "Profile", "Personality Quiz", "VybeShop", "Characters"] + st.session_state.secret_tabs_unlocked)
 
 with tabs[0]:
     st.title("🌟 Welcome to Vyral")
@@ -144,7 +144,7 @@ with tabs[3]:
         st.image(f"images/{st.session_state.vyber_type.lower()}.png", caption="Your Energy Avatar", use_column_width=True)
 
 with tabs[4]:
-    st.subheader("🧪 Personality Kwyz")
+    st.subheader("🧪 Personality Quiz")
     st.write("Find out what kind of Vyber you are!")
     # ... existing quiz code ...
 
