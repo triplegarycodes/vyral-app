@@ -30,6 +30,8 @@ if "next_quiz_threshold" not in st.session_state:
     st.session_state.next_quiz_threshold = random.randint(1, 5)
 if "vybecheck_log" not in st.session_state:
     st.session_state.vybecheck_log = []
+if "positive_streak" not in st.session_state:
+    st.session_state.positive_streak = 0
 
 MILESTONES = {
     100: "Alt Avatar Frame",
@@ -39,14 +41,37 @@ MILESTONES = {
     300: "Mystery Bonus Box"
 }
 
+NORMAL_EVENTS = [
+    ("Your crush friend-zones you over text (ouch...)", -10, -4),
+    ("You find $5 in your hoodie pocket!", +5, +3),
+    ("Lost your AirPods at lunch... again", -5, -6),
+    ("Helped a friend study — they passed!", +4, +2),
+    ("Accidentally liked a 3-year-old Instagram post...", -6, -2),
+    ("Won your school talent show!", +10, +5),
+    ("Late to class but teacher didn’t notice", +2, 0),
+    ("Spilled your lunch in the cafeteria", -8, -3),
+    ("Perfect score on a surprise quiz", +7, +6),
+    ("Phone died during your favorite part of a convo", -4, -2),
+    ("Someone called your fit fire 🔥", +3, +1),
+    ("Tripped in the hallway — someone saw", -5, -1),
+    ("Crushed it in gym class dodgeball", +6, +3),
+    ("You got featured on the school’s social media", +4, +2),
+    ("You made someone laugh who was having a rough day", +5, +5),
+    ("You forgot your locker combo again", -2, -2),
+    ("Free cookies in the cafeteria today!", +3, +2),
+    ("Hit your head getting off the bus...", -3, -1),
+    ("Your joke landed perfectly at lunch", +4, +3),
+    ("Homework vanished into thin air — teacher believed you?!", +6, +4)
+]
+
 # Cooldown logic (e.g., 5 seconds between valid plays)
 def can_play():
     return time.time() - st.session_state.last_click_time >= 5
 
-# Sidebar navigation
-page = st.sidebar.selectbox("Navigate", ["Vybe Royale", "Profile", "VybeCheck"])
+# Main UI Navigation Tabs
+tabs = st.tabs(["Vybe Royale", "Profile", "VybeCheck"])
 
-if page == "Vybe Royale":
+with tabs[0]:
     st.title("🎮 Vybe Royale Mini Game")
     st.markdown(f"**Score:** {st.session_state.vybe_royale_score} | **VybuX:** {st.session_state.vybux}")
 
@@ -55,7 +80,6 @@ if page == "Vybe Royale":
             st.session_state.click_count += 1
             st.session_state.last_click_time = time.time()
 
-            # Trigger quiz question every N rounds where N is randomized
             if st.session_state.click_count % st.session_state.next_quiz_threshold == 0:
                 st.session_state.next_quiz_threshold = random.randint(1, 5)
                 st.markdown("### Bonus Round: Answer to earn!")
@@ -68,13 +92,25 @@ if page == "Vybe Royale":
                     if user_answer == correct:
                         st.success("✅ Correct! +5 VybuX")
                         st.session_state.vybux += 5
+                        st.session_state.positive_streak += 1
                     else:
                         st.error("❌ Incorrect. -5 Vybe Royale Score")
                         st.session_state.vybe_royale_score -= 5
+                        st.session_state.positive_streak = 0
             else:
-                reward = random.choice([-5, 5])
-                st.session_state.vybe_royale_score += reward
-                st.markdown(f"{'+5' if reward > 0 else '-5'} Vybe Royale Score this round!")
+                event, score_change, vybux_change = random.choice(NORMAL_EVENTS)
+                st.markdown(f"**{event}**")
+                st.session_state.vybe_royale_score += score_change
+                st.session_state.vybux += vybux_change
+                if score_change > 0:
+                    st.session_state.positive_streak += 1
+                else:
+                    st.session_state.positive_streak = 0
+                st.markdown(f"Score Change: {score_change:+}, VybuX Change: {vybux_change:+}")
+
+            if st.session_state.positive_streak >= 3:
+                st.success("🔥 You're on a hot streak! Bonus +2 VybuX!")
+                st.session_state.vybux += 2
 
             for milestone, item in MILESTONES.items():
                 if st.session_state.vybux >= milestone and item not in st.session_state.milestones_unlocked:
@@ -95,8 +131,9 @@ if page == "Vybe Royale":
         st.session_state.click_count = 0
         st.session_state.milestones_unlocked = []
         st.session_state.last_click_time = 0
+        st.session_state.positive_streak = 0
 
-elif page == "Profile":
+with tabs[1]:
     st.title("👤 Your Profile")
     st.markdown(f"**Vybe Royale Score:** {st.session_state.vybe_royale_score}")
     st.markdown(f"**VybuX Balance:** {st.session_state.vybux}")
@@ -115,7 +152,7 @@ elif page == "Profile":
         for item in st.session_state.milestones_unlocked:
             st.markdown(f"- {item}")
 
-elif page == "VybeCheck":
+with tabs[2]:
     st.title("📝 VybeCheck – Your Goals & Logs")
     goal = st.text_input("What's on your mind or to-do?")
     if st.button("Log Entry") and goal:
