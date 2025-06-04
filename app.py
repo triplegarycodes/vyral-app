@@ -8,7 +8,7 @@ import time
 # Load Quiz Questions from the 60-question file
 @st.cache_data
 def load_questions():
-    df = pd.read_excel("/mnt/data/Vybe Royale _s.xlsx")
+    df = pd.read_excel("/mnt/data/Vybe Royale_s.xlsx")
     df.dropna(inplace=True)
     return df
 
