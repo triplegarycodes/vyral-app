@@ -83,13 +83,21 @@ with tabs[0]:
             if st.session_state.click_count % st.session_state.next_quiz_threshold == 0:
                 st.session_state.next_quiz_threshold = random.randint(1, 5)
                 st.markdown("### Bonus Round: Answer to earn!")
-                row = questions_df.sample(1).iloc[0]
-                question, a, b, c, correct = row["Question"], row["Option A"], row["Option B"], row["Option C"], row["Correct Answer"]
 
-                user_answer = st.radio(question, options=["Option A", "Option B", "Option C"], index=None, key=f"quiz_{st.session_state.click_count}")
+                row = questions_df.sample(1).iloc[0]
+                question = row["Question"]
+                option_a = row["Option A"]
+                option_b = row["Option B"]
+                option_c = row["Option C"]
+                correct_answer_text = row[row["Correct Answer"]]
+
+                options = [option_a, option_b, option_c]
+                random.shuffle(options)
+
+                user_answer = st.radio(question, options=options, index=None, key=f"quiz_{st.session_state.click_count}")
 
                 if user_answer:
-                    if user_answer == correct:
+                    if user_answer == correct_answer_text:
                         st.success("✅ Correct! +5 VybuX")
                         st.session_state.vybux += 5
                         st.session_state.positive_streak += 1
