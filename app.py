@@ -1,14 +1,14 @@
-# Full Streamlit Code for Vybe Royale Integration with Quiz Logic and Milestones
+# Full Streamlit Code for Vybe Royale Integration with Quiz Logic, Milestones, Vybe Shop, and Avatar Profiles
 
 import streamlit as st
 import pandas as pd
 import random
 import time
 
-# Load Quiz Questions from the 60-question file
+# Load Quiz Questions from the CSV file for faster performance
 @st.cache_data
 def load_questions():
-    df = pd.read_excel("/mnt/data/Vybe Royale_s.xlsx")
+    df = pd.read_csv("/mnt/data/Vybe Royale _s - Sheet1.csv")
     df.dropna(inplace=True)
     return df
 
@@ -25,6 +25,10 @@ if "last_click_time" not in st.session_state:
     st.session_state.last_click_time = 0
 if "milestones_unlocked" not in st.session_state:
     st.session_state.milestones_unlocked = []
+if "owned_items" not in st.session_state:
+    st.session_state.owned_items = []
+if "selected_avatar" not in st.session_state:
+    st.session_state.selected_avatar = "None"
 
 MILESTONES = {
     100: "Alt Avatar Frame",
@@ -33,6 +37,17 @@ MILESTONES = {
     250: "Custom Gradient Pack",
     300: "Mystery Bonus Box"
 }
+
+SHOP_ITEMS = {
+    "Cosmic Trail": 40,
+    "Name Glow (Blue)": 30,
+    "Double XP Boost (10 min)": 50,
+    "Vybe Emote Pack": 25,
+    "Echo Avatar: Horizon Fox": 75,
+    "Echo Avatar: Neon Ghost": 75
+}
+
+AVATAR_OPTIONS = ["None", "Horizon Fox", "Neon Ghost"]
 
 # Cooldown logic (e.g., 5 seconds between valid plays)
 def can_play():
@@ -77,17 +92,41 @@ if st.button("Play Round"):
     else:
         st.warning("⏳ Slow down! Wait a few seconds between rounds.")
 
-# Show unlocked items
+# Show unlocked milestone rewards
 if st.session_state.milestones_unlocked:
     st.markdown("### 🔓 Unlocked Rewards")
     for item in st.session_state.milestones_unlocked:
         st.markdown(f"- {item}")
 
-# Optional: Reset button for testing
+# Vybe Shop Section
+st.markdown("---")
+st.header("🛍️ Vybe Shop")
+for item, cost in SHOP_ITEMS.items():
+    if st.button(f"Buy {item} - {cost} VybuX"):
+        if st.session_state.vybux >= cost:
+            if item not in st.session_state.owned_items:
+                st.session_state.vybux -= cost
+                st.session_state.owned_items.append(item)
+                st.success(f"✅ Purchased: {item}!")
+            else:
+                st.info("You already own this item.")
+        else:
+            st.warning("Not enough VybuX!")
+
+# Avatar Selector Section
+st.markdown("---")
+st.header("🎭 Avatar Selector")
+st.session_state.selected_avatar = st.selectbox("Choose Your Avatar", AVATAR_OPTIONS)
+st.markdown(f"**Current Avatar:** {st.session_state.selected_avatar}")
+
+# Reset button for testing
 if st.button("Reset Game"):
     st.session_state.vybe_royale_score = 100
     st.session_state.vybux = 50
     st.session_state.click_count = 0
     st.session_state.milestones_unlocked = []
+    st.session_state.owned_items = []
     st.session_state.last_click_time = 0
+    st.session_state.selected_avatar = "None"
+
 
