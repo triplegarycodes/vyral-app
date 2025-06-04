@@ -58,16 +58,18 @@ if st.button("Play Round"):
 
             if user_answer:
                 if user_answer == correct:
-                    st.success("✅ Correct! +5 VybuX")
+                    st.success("✅ Correct! +5 VybuX & +5 Score")
                     st.session_state.vybux += 5
+                    st.session_state.vybe_royale_score += 5
                 else:
-                    st.error("❌ Incorrect. -5 Vybe Royale Score")
+                    st.error("❌ Incorrect. -5 Score")
                     st.session_state.vybe_royale_score -= 5
         else:
             # Standard click bonus
             reward = random.choice([-5, 5])
             st.session_state.vybe_royale_score += reward
-            st.markdown(f"{'+5' if reward > 0 else '-5'} Vybe Royale Score this round!")
+            st.session_state.vybux += reward  # Adjust vybux as well
+            st.markdown(f"{'+5' if reward > 0 else '-5'} Score and VybuX this round!")
 
         # Check milestones
         for milestone, item in MILESTONES.items():
